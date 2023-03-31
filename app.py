@@ -64,6 +64,8 @@ def gotopage():
 def api_register():
     id_receive = request.form['id_give']
     pw_receive = request.form['pw_give']
+    nickname_receive = request.form['nickname_give']
+
 
     pw_hash = hashlib.sha256(pw_receive.encode('utf-8')).hexdigest()
 
@@ -132,19 +134,33 @@ def api_valid():
 
 @app.route('/write', methods=['POST'])
 def save():
-    title_receive = request.form['title_give']
-    context_receive = request.form['context_give']
-    category_receive = request.form['category_give']
+    token_receive = request.cookies.get('mytoken')
+    try:
+        payload = jwt.decode(token_receive, SECRET_KEY, algorithms=['HS256'])
+        userinfo = db.user.find_one({'id': payload['id']}, {'_id': 0})
 
-    doc = {
-        'title':title_receive,
-        'context':context_receive,
-        'category':category_receive,
-        'like':0
-    }
-    db.Content.insert_one(doc)
+        title_receive = request.form['title_give']
+        context_receive = request.form['context_give']
+        category_receive = request.form['category_give']
 
-    return jsonify({'msg':'저장완료!'})  
+        doc = {
+            'nickname':userinfo['nick'],
+            'title':title_receive,
+            'context':context_receive,
+            'category':category_receive,
+            'like':0
+        }
+        db.Content.insert_one(doc)
+
+        return jsonify({'msg':'저장완료!'})
+    
+    except jwt.ExpiredSignatureError:
+        # 위를 실행했는데 만료시간이 지났으면 에러가 납니다.
+        return jsonify({'result': 'fail', 'msg': '로그인 시간이 만료되었습니다.'})
+    except jwt.exceptions.DecodeError:
+        return jsonify({'result': 'fail', 'msg': '로그인 정보가 존재하지 않습니다.'})
+
+
 
 @app.route("/content", methods=["GET"])
 def content_get():

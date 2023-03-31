@@ -36,7 +36,6 @@
         }
 
         h1 {
-            border : solid black 1px;
             font-family: 'Gugi', cursive;
             margin: 20px;
             font-size: 40px;
@@ -51,7 +50,6 @@
         }
 
         .buttons {
-            border:solid black 1px;
             margin-top: 20px;
         }
         .btn-sign {
@@ -107,6 +105,10 @@
     </style>
 
     <script>
+    $(document).ready(function () {
+        listing_mycontent()
+    })
+
         $(function () {
             var $likeBtn = $('.icon.heart');
 
@@ -130,8 +132,39 @@
             })
         })
         function gotopage(){
-            location.href='writepage.html'
+            window.location.href='/write'
         }
+
+        function listing_mycontent() {
+            fetch('/content').then((res)=>res.json()).then((data)=>{
+                let contents = data['result']
+                $('#cards-box').empty()
+                contents.forEach((one)=>{
+                    let nickname = one['nickname']
+                    let title = one['title']
+                    let context = one['context']
+                    let category = one['category']
+                    let like = one['like']
+                    console.log(title, context, category, like, nickname)
+                    let temp_html = ` <div class="card">
+                                            <div class="card-body">
+                                                <div class="card-top" style="display:flex; flex-direction: row;">
+                                                    <h5 class="card-title" style="margin-right: 170px;">${title}</h5>
+                                                    <a href="javascript:;" class="icon heart">
+                                                        <img src="https://cdn-icons-png.flaticon.com/512/812/812327.png" alt="찜하기">
+                                                    </a>
+                                                </div>
+                                                <div class="jb-division-line"></div>
+                                                <div class="card-1">
+                                                    <p class="card-body-hashtag">#${category}</p>
+                                                    <p class="card-text">${context}</p>
+                                                    <footer style="margin-bottom: 10px; opacity: 0.5;">${nickname}.</footer>
+                                                </div>
+                                            </div>
+                                        </div>`
+                    $('#cards-box').append(temp_html)
+                })
+            })}
 
         function login() {
                 $.ajax({
@@ -163,7 +196,7 @@
         function logout(){
         $.removeCookie('mytoken');
         alert('로그아웃!')
-        window.location.href='/login'
+        window.location.href='/'
         }
 
     </script>
@@ -193,7 +226,7 @@
             </div>
         </div>
     </div>
-    <div class="row row-cols-1 row-cols-md-3 g-4" style="display:flex; align-items: center; justify-content: center; margin-top: 10px;">
+    <div class="row row-cols-1 row-cols-md-3 g-4" id ="cards-box" style="display:flex; align-items: center; justify-content: center; margin-top: 10px;">
         <div class="card">
             <div class="card-body">
                 <div class="card-top" style="display:flex; flex-direction: row;">
